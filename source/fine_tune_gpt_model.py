@@ -4,7 +4,7 @@ import json
 from openai import OpenAI
 from collections import defaultdict
 
-data_path = "document/data/howto_conversations.jsonl"
+data_path = "document/data/zhangjiang_source.jsonl"
 json_dataset = []
 # Token conuting functions
 encoding = tiktoken.get_encoding("cl100k_base")
@@ -40,7 +40,7 @@ def convert_conversation(conversation_str, system_message=None):
             continue
 
         # Identifying the role based on the speaker's name
-        role = "user" if parts[0].strip() == "Theodore" else "assistant"
+        role = "user" if parts[0].strip() == "Kevin" else "assistant"
 
         # Formatting the message
         message = {
@@ -177,11 +177,15 @@ if __name__ == '__main__':
             json_dataset.append(json.loads(jsonstr))
 
     dataset = []
-    system_message = """You are Jamson a helpful and charming assistant who can help with a variety of tasks. You are friendly and often lirt"""
+    system_message = """You are Jameson a helpful and charming assistant who can help with a variety of tasks. You are friendly and often lirt"""
 
     for data in json_dataset:
+        print("Data => ", data)
         record = convert_conversation(data, system_message=system_message)
+        print("Record => ", record)
         dataset.append(record)
+
+    print(dataset)
 
     checkformat(dataset)
 
@@ -190,17 +194,18 @@ if __name__ == '__main__':
     # Initial dataset stats
     print("Num examples:", len(dataset))
 
-    save_to_jsonl(dataset, '/Users/romani/Codes/smartGPT/samantha_tasks_train.jsonl')
-    save_to_jsonl(dataset[10:15], "/Users/romani/Codes/smartGPT/samantha_tasks_validation.jsonl")
+    save_to_jsonl(dataset, '/Users/romani/Codes/smartGPT/zhangjiang.jsonl')
+    save_to_jsonl(dataset[10:15], "/Users/romani/Codes/smartGPT/zhangjiang_validation.jsonl")
 
     client = OpenAI()
-
-    training_response = client.File.create(file=open('/Users/romani/Codes/smartGPT/samantha_tasks_train.jsonl', 'rb'), purpose="fine-tune")
+    training_response = client.files.create(file=open('/Users/romani/Codes/smartGPT/zhangjiang.jsonl', 'rb'), purpose="fine-tune")
     training_file_id = training_response["id"]
-
-    validation_response = client.File.create(file=open('/Users/romani/Codes/smartGPT/samantha_tasks_validation.jsonl', 'rb'), purpose="fine-tune")
+    validation_response = client.files.create(file=open('/Users/romani/Codes/smartGPT/zhangjiang_validation.jsonl', 'rb'), purpose="fine-tune")
     validation_file_id = validation_response["id"]
 
     print("Training file id:", training_file_id)
     print("Validation file id:", validation_file_id)
+    
+    # res = client.fine_tuning.jobs.create(training_file="file-abc123", model="gpt-3.5-turbo")
+    # print("Model: ", res)
     
